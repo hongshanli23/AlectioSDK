@@ -5,7 +5,7 @@ from torch.utils.data import Dataset
 import os
 import PIL.Image as Image
 
-class ImageDataCLS(Dataset)
+class ImageDataCLS(Dataset):
     '''Image dataset object for classification'''
     def __init__(self, root, train=True, transform=None):
         '''
