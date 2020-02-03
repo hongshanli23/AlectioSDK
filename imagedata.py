@@ -34,7 +34,7 @@ class ImageDataCLS(Dataset):
                 t = ln.split(',')[-1].strip()
                 self.target.append(int(t))
 
-    def __len___(self):
+    def __len__(self):
         return len(self.target)
     
     def __getitem__(self, idx):
