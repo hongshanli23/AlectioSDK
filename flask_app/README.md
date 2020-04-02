@@ -14,7 +14,7 @@ The function `train(payload)` defines how you would want to train your model.
 The `payload` here contains three keys
 
 | key | value |
-__| --- | ----- |
+| --- | ----- |
 | resume_from | a string that specifies which checkpoint to resume from |
 | ckpt_file | a string that specifies the name of checkpoint to be saved for the current loop |
 | selected_indices | a list of indices of selected samples for this loop | 
@@ -37,6 +37,8 @@ The `payload` here contains one key
 The `test` function needs to return two dictionaries as a tuple
 `(prd, lbs)` 
 
+| return | about | 
+| ------ | ----- | 
 | prd | dictionary of indices of test samples and its prediction | 
 | lbs | dictionary of indices of test samples and its true label | 
 
@@ -47,7 +49,7 @@ function.
 
 The `payload` here has two keys
 | key | value |
-| __--- | ----- | 
+| --- | ----  | 
 | ckpt_file | a string that specifies which checkpoint to use to infer on the unlabeled data | 
 | unlabeled | a list of unlabeled data |
 
