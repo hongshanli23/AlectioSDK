@@ -59,6 +59,8 @@ box. It should be of the format
 ```
 [x1, y1, x2, y2, objectness, class]
 ```
+| variables | meaning |
+| --------- | ------- | 
 | x1 | (int) x-coordinate of the top-left point of the bounding box |
 | y1 | (int) y-coordinate of the top-left point of the bounding box | 
 | x2 | (int) x-coordinate of the bottom-right point of the bounding box |
@@ -108,6 +110,8 @@ format
 ```
 [x1, y1, x2, y2, objectness, c0, c2, ..., cn]
 ```
+| variables | meaning |
+| ----------| ------- | 
 | x1 | (int) x-coordinate of the top-left point of the bounding box |
 | y1 | (int) y-coordinate of the top-left point of the bounding box | 
 | x2 | (int) x-coordinate of the bottom-right point of the bounding box |
