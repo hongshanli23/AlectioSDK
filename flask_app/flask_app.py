@@ -23,7 +23,7 @@ def test():
 def infer():
     payload = request.get_json() 
     output = processes.infer(payload)
-    return jsonify(output)
+    return jsonify({'output': output})
 
 
 if __name__ == '__main__':

@@ -42,6 +42,44 @@ The `test` function needs to return two dictionaries as a tuple
 | prd | dictionary of indices of test samples and its prediction | 
 | lbs | dictionary of indices of test samples and its true label | 
 
+The `test` function needs to return 2 dictionaries `prd` and `lbs`.
+
+### prd
+It is a dictionary of test data indices and its prediction. 
+The format of this dictionary depends on the type of ML problems.
+
+#### Image classification
+* key: indices of test data
+* value: integer that representing the predicted class
+
+#### Object detection
+* key: indices of test data
+* value: list of list. The inner list represents the predicted bounding
+box. It should be of the format
+```
+[x1, y1, x2, y2, objectness, class]
+```
+| x1 | (int) x-coordinate of the top-left point of the bounding box |
+| y1 | (int) y-coordinate of the top-left point of the bounding box | 
+| x2 | (int) x-coordinate of the bottom-right point of the bounding box |
+| y2 | (int) y-coordinate of the bottom-right point of the bounding box | 
+| objectness | (float) objectness score ranging between 0 and 1 |
+| class | (int) class label |
+
+`x1, y1, x2, y2` need to be normalized by the image dimension. For example,
+
+```
+x1 = absolute value of the top-left point of the bbox / width of the image
+
+y1 = aboslute value of the top-left point of the bbx / height of the image
+```
+
+### lbs
+It is a dictionary of test data and its ground-truth label. 
+The format of the values of
+this dictionary is exactly the same as `prd`. 
+
+
 ## apply inference on the model
 The last step in one active learning is to let the model infer on the 
 unlabeled data. You will need to implement it through the `infer(payload)` 
@@ -53,6 +91,31 @@ The `payload` here has two keys
 | ckpt_file | a string that specifies which checkpoint to use to infer on the unlabeled data | 
 | unlabeled | a list of unlabeled data |
 
+The `infer` function needs to return one dictionary `output`. 
+
+### output
+It is a dictionary of indices of unlabeled data and the model's inference.
+The format of this dictionary depends on the type of ML problem
+
+#### Image classification
+* key: (int) indices unlabeled training set
+* value: (list(float)) class probabilities 
+
+#### Object detection 
+* key: (int) indices of unlabeled training set
+* value: (list(list)) prediction of each anchor box. The inner list should have the following
+format
+```
+[x1, y1, x2, y2, objectness, c0, c2, ..., cn]
+```
+| x1 | (int) x-coordinate of the top-left point of the bounding box |
+| y1 | (int) y-coordinate of the top-left point of the bounding box | 
+| x2 | (int) x-coordinate of the bottom-right point of the bounding box |
+| y2 | (int) y-coordinate of the bottom-right point of the bounding box | 
+| objectness | (float) objectness score ranging between 0 and 1 |
+| c0,...,cn | class distribution (n+1) classes in this case | 
+
+Again, `x1, y1, x2, y2` needs to be normalized by the image dimension
 
 
 
