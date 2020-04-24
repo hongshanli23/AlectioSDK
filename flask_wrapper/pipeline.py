@@ -70,8 +70,8 @@ class Pipeline(object):
                 'status': 500
                 })
 
-    def run(self):
-        self.app.run(debug=False)
+    def run(self, debug=True, host='0.0.0.0'):
+        self.app.run(debug=debug, host=host)
 
 
 '''
