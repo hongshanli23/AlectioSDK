@@ -48,8 +48,12 @@ class Pipeline(object):
     def _test(self):
         payload = request.get_json()
         try:
-            self.test_fn(payload)
-            return jsonify({'status': 200})
+            prd, lbs = self.test_fn(payload)
+            return jsonify(
+                    {'status': 200
+                     'prd': prd,
+                     'lbs': lbs
+                })
 
         except Exception as e:
             traceback.print_exceptions(sys.exc_info())
