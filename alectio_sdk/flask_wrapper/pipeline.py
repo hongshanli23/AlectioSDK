@@ -23,12 +23,12 @@ class Pipeline(object):
         
         # test
         self.app.add_url_rule(
-            '/test', 'test', self._test
+            '/test', 'test', self._test, methods=['POST']
             )
 
         # infer
         self.app.add_url_rule(
-            '/infer', 'infer', self._infer
+            '/infer', 'infer', self._infer, methoes=['POST']
             )
 
 
@@ -72,8 +72,21 @@ class Pipeline(object):
                 'status': 500
                 })
 
-    def __call__(self, debug=False, host='0.0.0.0'):
-        self.app.run(debug=debug, host=host)
+    def __call__(self, debug=False, host='0.0.0.0', port=5000):
+        '''Run the app
+
+        Paramters:
+        ----------
+        debug: boolean. Default: False
+            If set to true, then the app runs in debug mode
+            See https://flask.palletsprojects.com/en/1.1.x/api/#flask.Flask.debug
+
+        host: the hostname to listen to. Default: '0.0.0.0'
+            By default the app available to external world
+
+        port: the port of the webserver. Default: 5000
+        '''
+        self.app.run(debug=debug, host=host, port=5000)
 
 
 
