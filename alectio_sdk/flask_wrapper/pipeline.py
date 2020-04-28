@@ -28,7 +28,7 @@ class Pipeline(object):
 
         # infer
         self.app.add_url_rule(
-            '/infer', 'infer', self._infer, methoes=['POST']
+            '/infer', 'infer', self._infer, methods=['POST']
             )
 
 
@@ -46,13 +46,10 @@ class Pipeline(object):
     def _test(self):
         payload = request.get_json()
         try:
-            prd, lbs = self.test_fn(payload)
-            return jsonify(
-                    {'status': 200,
-                     'prd': prd,
-                     'lbs': lbs
-                })
-
+            res = self.test_fn(payload)
+            res['status'] = 200
+            
+            return jsonify(res)
         except Exception as e:
             traceback.print_exceptions(sys.exc_info())
             return jsonify({'status': 500})
@@ -61,11 +58,10 @@ class Pipeline(object):
     def _infer(self):
         payload = request.get_json()
         try:
-            output = self.infer_fn(payload)
-            return jsonify({
-                'status': 200,
-                'output': output
-                })
+            res = self.infer_fn(payload)
+            res['status'] = 200
+            
+            return jsonify(res)
         except Exception as e:
             traceback.print_exceptions(sys.exc_info())
             return jsonify({

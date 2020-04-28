@@ -1,0 +1,10 @@
+0, Ordinary Life
+1, School Life
+2, Culture & Education
+3, Attitude & Emotion
+4, Relationship
+5, Tourism
+6, Health
+7, Work
+8, Politics
+9, Finance
