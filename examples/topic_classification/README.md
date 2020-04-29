@@ -175,7 +175,7 @@ The value of `labels` looks like
 where $yi$ is the integer ground-truth class label of sample $i$
 
 
-
-
-
-
+### Final words
+Thanks for going through this long readme (I know)! Please feel free to send 
+[me](https://www.linkedin.com/in/hongshanli/) a message at hongshan.li@alectio.com
+if you need further assistance to setup your pipeline.
