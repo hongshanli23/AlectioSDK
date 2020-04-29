@@ -1,3 +1,10 @@
+'''
+Main processes for the projecct
+
+Author: Hongshan Li
+Email: hongshan.li@alectio.com
+'''
+
 import torch
 import torch.optim as optim
 import torch.nn as nn
@@ -14,6 +21,7 @@ from model import RNN
 import envs
 
 
+# initialze the model
 INPUT_DIM = len(TEXT.vocab)
 EMBEDDING_DIM = 100
 HIDDEN_DIM = 256
@@ -42,6 +50,26 @@ def accuracy(outputs, targets):
     
 
 def train(payload):
+    '''Train the model and save the checkpoint
+    
+    payload: the payload object received from the http call
+        from the Alectio Platform. 
+        It is parsed as an immutable dictionary with 3 keys
+        
+        labeled: list
+            indices of training data to be used for this active learning loop
+        
+        resume_from: str
+            checkpoint file to resume from. For example, in loop n 
+            of active learning, the value of this key is `ckpt_(n-1)`, 
+            indicating that you should resume from ckeckpoint saved in loop n-1
+        
+        ckpt_file: str
+            ckeckpoint file to save. For example, in loop n of active 
+            learing, the value of this key is `ckpt_n`, i.e. you 
+            should save the model ckeckpoint as `ckpt_n` in your log directory
+    
+    '''
     
     # which checkpoint to resume from
     resume_from = payload['resume_from']
@@ -53,7 +81,6 @@ def train(payload):
     labeled = payload['labeled']
     
     # training hyperparameters:
-    
     batch_size=128 # batch size
     lr=1e-2 # learning rate
     weight_decay=1e-4 # weight decay
@@ -131,6 +158,18 @@ def train(payload):
     return
 
 def test(payload):
+    '''Test the model and return the predictions and ground-truth
+    
+    payload: the payload object received from the http call
+        from the Alectio Platform. 
+        It is parsed as an immutable dictionary with 1 key
+        
+        ckpt_file: str
+            The model ckeckpoint file to be tested. For example,
+            in loop n of active learning, the value of this key is 
+            `ckpt_n`, indicating that you should load your model
+            from `ckpt_n` in the log directory and test it
+    ''' 
     
     # which ckpt to test                  
     ckpt_file = payload['ckpt_file']
@@ -175,6 +214,23 @@ def test(payload):
 
 
 def infer(payload):
+    '''Use the model to infer on the unlabeled data and return the output
+    
+    payload: the payload object received from the http call
+        from the Alectio Platform. 
+        It is parsed as an immutable dictionary with 2 keys
+        
+        ckpt_file: str
+            The checkpoint file to use to apply inference. 
+            For example, in loop n of active learning, the
+            value of this key is `ckpt_n`. It means you should
+            load `ckpt_n` from the log directory to your model
+            for inference.
+            
+        unlabeled: list
+            indices of the data in the training set to be used
+            for inference
+    '''
     ckpt_file = payload['ckpt_file']
     unlabeled = payload['unlabeled'] 
     

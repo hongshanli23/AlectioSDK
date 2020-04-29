@@ -2,5 +2,5 @@ torch
 torchtext
 tensorboard
 spacy
-
+flask
 

@@ -64,26 +64,21 @@ class DailyDialog(Dataset):
         super(DailyDialog, self).__init__(examples, fields)
 
 
-        
+# build a dataset for the entire training set        
 entire_data = DailyDialog(path=os.path.join(envs.DATA_DIR,
     'train.json'), text_field=TEXT, 
     label_field=LABEL, samples=None, cap=None)
 
 
-vectors = Vectors(name='glove.6B.100d.txt', cache=os.path.join(
-    envs.VECTOR_DIR, 'glove'))
+# load glove vectors
+vectors = Vectors(name='glove.6B.100d.txt', cache=envs.VECTOR_DIR)
 
 
+# build text field with the glove vectors
 TEXT.build_vocab(entire_data, vectors=vectors)
+
+
+# build a label field based on the entire data
 LABEL.build_vocab(entire_data)
 
 
-def write_class_weight():
-    labels = [x.label for x in entire_data]
-    cnt = Counter(labels)
-    class_weights = []
-    for i in range(len(cnt)):
-        class_weights.append(cnt[i])
-    return class_weights
-
-# print(write_class_weight())
