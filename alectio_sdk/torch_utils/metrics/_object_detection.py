@@ -1,34 +1,60 @@
 from ..utils import box_iou
 
+import torch
 
 # implementation from https://github.com/sgrvinod/a-PyTorch-Tutorial-to-Object-Detection/blob/master/utils.py
-def mAP(det_boxes, det_labels, det_scores, true_boxes, true_labels, true_difficulties):
+def mAP(det_boxes, det_labels, det_scores, true_boxes, 
+        true_labels, true_difficulties, n_classes, **kwargs):
     """
     Calculate the Mean Average Precision (mAP) of detected objects.
     See https://medium.com/@jonathan_hui/map-mean-average-precision-for-object-detection-45c121a31173 for an explanation
     
     Parameters:
     -----------
-        det_boxes: list of tensors, one tensor for each image containing detected objects' bounding boxes.
-            Each tensor is of shape (M_i, 4), where M_i is the number of objects in the image. Bounding
-            boxes are in xyxy-convention
+        det_boxes: list of tensors, 
+            one tensor for each image containing detected objects' bounding boxes.
+            Each tensor is of shape (M_i, 4), where M_i is the number of objects 
+            in the image. Bounding boxes are in xyxy-convention
         
-        det_labels: list of tensors, one tensor for each image containing detected objects' labels. 
+        det_labels: list of tensors, 
+            one tensor for each image containing detected objects' labels. 
             Each tensor is of shape (M_i)
             
-        det_scores: list of tensors, one tensor for each image containing detected objects' labels' scores.
-            Each tensor is of shape (M_i). Object score is the objectness of each detection
+        det_scores: list of tensors, one tensor for each image 
+            containing detected objects' labels' scores.
+            Each tensor is of shape (M_i). Object score is 
+            the objectness of each detection
             
             
-        true_boxes: list of tensors, one tensor for each image containing actual objects' bounding boxes.
-            Each tensor is of shape (N_i, 4), where N_i is the number of ground-truth bbox on the image.
+        true_boxes: list of tensors, 
+            one tensor for each image containing actual objects' bounding boxes.
+            Each tensor is of shape (N_i, 4), where N_i is the number of 
+            ground-truth bbox on the image.
             Bbox in xyxy convention
             
-        true_labels: list of tensors, one tensor for each image containing actual objects' labels. 
+        true_labels: list of tensors, 
+            one tensor for each image containing actual objects' labels. 
             Each tensor is of shape N_i
             
             
-        true_difficulties: list of tensors, one tensor for each image containing actual objects' difficulty (0 or 1)
+        true_difficulties: list of tensors 
+            one tensor for each image containing actual objects' difficulty (0 or 1)
+            Each tensor is of shape N_i, where N_i the the number of object on 
+            the corresponding image
+            
+        num_classes: int
+            number of classes
+       
+    Keywords Args:
+    --------------
+    
+        device: str. Default 'cpu'
+            computing device ('cuda', 'cpu', etc)
+        
+        threshold: float. Default=0.5
+            IoU threshold for a prediction to be considered correct
+            with grounth-truth bouding box
+            
     
     Return:
     -------
@@ -38,7 +64,11 @@ def mAP(det_boxes, det_labels, det_scores, true_boxes, true_labels, true_difficu
     assert len(det_boxes) == len(det_labels) == len(det_scores) == len(true_boxes) == len(
         true_labels) == len(
         true_difficulties)  # these are all lists of tensors of the same length, i.e. number of images
-    n_classes = len(label_map)
+    
+    
+    device = kwargs.get('device', 'cpu')
+    threshold = kwargs.get('threshold', 0.5)
+
 
     # Store all (true) objects in a single continuous tensor while keeping track of the image it is from
     true_images = list()
@@ -115,7 +145,7 @@ def mAP(det_boxes, det_labels, det_scores, true_boxes, true_labels, true_difficu
             # We need 'original_ind' to update 'true_class_boxes_detected'
 
             # If the maximum overlap is greater than the threshold of 0.5, it's a match
-            if max_overlap.item() > 0.5:
+            if max_overlap.item() > threshold:
                 # If the object it matched with is 'difficult', ignore it
                 if object_difficulties[ind] == 0:
                     # If this object has already not been detected, it's a true positive
@@ -151,7 +181,7 @@ def mAP(det_boxes, det_labels, det_scores, true_boxes, true_labels, true_difficu
     mean_average_precision = average_precisions.mean().item()
 
     # Keep class-wise average precisions in a dictionary
-    average_precisions = {rev_label_map[c + 1]: v for c, v in enumerate(average_precisions.tolist())}
+    average_precisions = {c: v for c, v in enumerate(average_precisions.tolist())}
 
     return average_precisions, mean_average_precision
 

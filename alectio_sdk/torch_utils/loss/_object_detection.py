@@ -18,7 +18,7 @@ class HardNegativeMultiBoxesLoss(nn.Module):
     
     Parameters:
     -----------
-        anchor_priors: Bbox object in xyxy convention.
+        anchor_priors: Normalized bounding box in xyxy convention.
             prior anchor boxes on each image. Underlying data is a
             a tensor of shape (P, 4), where P denotes the total number
             of prior anchor boxes on each image. 
@@ -69,37 +69,45 @@ class HardNegativeMultiBoxesLoss(nn.Module):
         by the spacial dimension of the image. 
         The bounding box should follow xyxy convention
     
-    labels: class label for each image. A list of N tensors [T1, T2, ...]
+    labels: class label for each image. A list of N tensors 
+        [T1, T2, ...]
         Ti[j] corresponds to the object in image i box j
+        Ti should be a torch.long tensor
     
     '''
     
     def __init__(self, anchor_priors, **kwargs):
+        super(HardNegativeMultiBoxesLoss, self).__init__()
+        
         self.anchor_priors = anchor_priors
         
         # number to negative priors to number of positive priors 
-        self.neg_to_pos = kwargs.get('neg_to_pos', 3)
+        self.neg_pos_ratio = kwargs.get('neg_pos_ratio', 3)
         
-        # 
-        self.alpha
-  
+        # total loss = classification loss + alpha * regression loss 
+        self.alpha = kwargs.get('alpha', 1.0)
+        
+        # level of iou for a detected bounding with ground-truth
+        # bbox to be consider a positive detection
+        self.threshold = kwargs.get('threshold', 0.5)
+      
+        self.device = kwargs.get('device')
         
     
     def forward(self, predicted_boxes, predicted_class_dist, 
                 predicted_objectness,
-      
                 boxes, labels):
         
         batch_size = predicted_boxes.shape[0]
         
         # number of anchor boxes prior per image
-        n_priors = self.anchor_priors.nboxes
+        n_priors = self.anchor_priors.shape[0]
         
         # number of classes in the dataset
         n_classes=predicted_class_dist.shape[2]
         
         
-        assert n_priors == predicted_boxes.shape[1] == predicted_class_scores.shape[1] == predicted_objectness.shape[1]
+        assert n_priors == predicted_boxes.shape[1] == predicted_class_dist.shape[1] == predicted_objectness.shape[1]
         
         # if n objects, then class label of background is n
         background_class = n_classes
@@ -151,7 +159,7 @@ class HardNegativeMultiBoxesLoss(nn.Module):
             
             # to make sure those prior selected above qualifies as positive priors
             # artificially give them iou > threshold
-            iou_for_each_prior[prior_for_each_objecct] = 1.0
+            iou_for_each_prior[prior_for_each_object] = 1.0
             
             
             # label for each prior 
@@ -171,7 +179,7 @@ class HardNegativeMultiBoxesLoss(nn.Module):
             # in log space
             true_locs[i] = cxcy_to_gcxgcy(
                 xy_to_cxcy(boxes[i][object_for_each_prior]), 
-                xyxy_to_cxcy(self.prior_anchors)
+                xy_to_cxcy(self.anchor_priors)
             )
             
         # end for 
@@ -183,38 +191,44 @@ class HardNegativeMultiBoxesLoss(nn.Module):
                                     true_locs[positive_priors])
         
         
-        # classification loss
-        # classification loss is computeed over positive priors and most
-        # difficult negative priors (hard negative mining)      
-        # num positive and negative priors per image
-        n_positives = positive_priors.sum(dim=1)
-        
-        n_hard_negatives = self.neg_pos_ratio * n_positive
-       
-        
-        class_loss_pos = F.cross_entropy_loss(
-            predicted_class_dist[positive_prior].view(-1, n_classes),
-            true_classes[positive_prior].view(-1) # positive priors has object
+        # classification loss on positive priors
+        class_loss_pos = F.cross_entropy(
+            predicted_class_dist[positive_priors].view(-1, n_classes),
+            true_classes[positive_priors].view(-1) # positive priors has object
         
         )
         
-        # loss for negative class
-        class_loss_neg  = F.mse_loss(predicted_objectness, 0, 
-                                     reduction="none")[~positive_priors].mean(dim=1) 
-        
-       
-        class_neg_loss, _ = class_neg_loss.sort(dim=1, descending=True)
-        class_neg_hard = class_neg_loss[:, :n_hard_negatives]
-        
-        
-        # average over positive boxes
-        # do not let negative to overwhelm the loss
-        class_loss = (class_neg_hard.sum() + class_loss_pos.sum()) / n_positives.sum().float()
-        
-        return class_loss + self.alpha * loc_loss
+        # objectness loss
+        # classification loss is computeed over positive priors and most
+        # difficult negative priors (hard negative mining)      
+        # num positive and negative priors per image
     
+   
+        
+        true_objectness = torch.zeros_like(predicted_objectness,
+            device=self.device, dtype=torch.float)
+        true_objectness[positive_priors] = 1.0
+        
+        obj_loss = F.mse_loss(predicted_objectness, true_objectness,
+                reduction='none')
+        
+        # account loss for all postive class
+        obj_loss_pos = obj_loss[positive_priors].mean()
         
         
+        # hard mine negative
+        n_positives = positive_priors.sum(dim=1)
+        n_hard_negatives = self.neg_pos_ratio * n_positives
+        obj_loss_neg = obj_loss.clone()
         
+        # only consider negative loss
+        obj_loss_neg[positive_priors] = 0.0
         
+        # sort loss on each image
+        obj_loss_neg, _ = obj_loss_neg.sort(dim=1, descending=True)
+        obj_loss_hardneg = obj_loss_neg[:, :n_hard_negatives].mean()
+        
+        obj_loss = obj_loss_pos + obj_loss_hardneg
+        
+        return class_loss_pos + obj_loss + self.alpha * loc_loss
         
