@@ -244,8 +244,6 @@ class Darknet(nn.Module):
                 output.append(module(x, img_size))
             layer_outputs.append(x if i in self.routs else [])
     
-    
-
         if self.training:
             return output
         else:
@@ -265,13 +263,5 @@ if __name__ == '__main__':
     
     for z in y:
         print(z.shape)
-
-
-
-
-
-
-
-
 
 

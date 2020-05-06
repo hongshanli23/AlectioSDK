@@ -38,7 +38,7 @@ class COCO(Dataset):
         imgs = os.listdir(os.path.join(root, 'images', subdir))
         
         if samples:
-            imgs = imgs[samples]
+            imgs = [imgs[i] for i in samples]
             
         self.image_paths = []
         for img in imgs:
@@ -74,7 +74,16 @@ class Transforms(object):
         self.img_size = img_size        
         
     def __call__(self, img, label):
-        return self.img_transforms(img), self.bbox_transforms(label)
+        img = self.img_transforms(img)
+        
+        # now label include bbox coordiate and the class label of object
+        # split into bbox coordiate and class labels 
+        # to be used later for loss function
+        label = self.bbox_transforms(label)
+        class_label = label[:,0].long()
+        boxes = label[:,1:]
+        
+        return img, boxes, class_label
     
     def img_transforms(self, img):
         img = T.Resize((self.img_size, self.img_size))(img)
@@ -101,21 +110,16 @@ class Transforms(object):
 
 def collate_fn(batch):
     '''
-    batch images along dim=0 (already unsqueezed by T.ToTensor)
-    
-    batch labels along dimension 0. To keep track of which image 
-    the bbox belong to, append local image index within each batch 
-    to the beginin to each bbox
+    batch images along dim=0 (already unsqueezed by T.ToTensor).
+    Put all boxes in a list
+    Put all labels in a list
     '''
     
-    images, labels = [], []
-    for ix, (img, label) in enumerate(batch):
-        num_bbox = label.shape[0]
-        ix = torch.zeros(num_bbox, dtype=torch.float).fill_(ix).view(num_bbox, 1)
-        label = torch.cat([ix, label], dim=1)
-        images.append(img); labels.append(label)
+    images, boxes, labels = [], [], []
+    for img, box, label in batch:
+        images.append(img); boxes.append(box); labels.append(label)
     
-    return torch.cat(images, dim=0), torch.cat(labels, dim=0)
+    return torch.cat(images, dim=0), boxes, labels
     
     
         
@@ -126,7 +130,7 @@ if __name__ == "__main__":
     
     loader = DataLoader(coco, batch_size=10, collate_fn=collate_fn)
     for img, label in loader:
-        print(img.shape, label.shape)
+        print(img.shape)
         
         
         

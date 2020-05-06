@@ -94,8 +94,8 @@ class HardNegativeMultiBoxesLoss(nn.Module):
         self.device = kwargs.get('device')
         
     
-    def forward(self, predicted_boxes, predicted_class_dist, 
-                predicted_objectness,
+    def forward(self, predicted_boxes, predicted_objectness, 
+                predicted_class_dist,
                 boxes, labels):
         
         batch_size = predicted_boxes.shape[0]
@@ -202,8 +202,6 @@ class HardNegativeMultiBoxesLoss(nn.Module):
         # classification loss is computeed over positive priors and most
         # difficult negative priors (hard negative mining)      
         # num positive and negative priors per image
-    
-   
         
         true_objectness = torch.zeros_like(predicted_objectness,
             device=self.device, dtype=torch.float)
@@ -217,6 +215,7 @@ class HardNegativeMultiBoxesLoss(nn.Module):
         
         
         # hard mine negative
+        # note that each image have different number of positives
         n_positives = positive_priors.sum(dim=1)
         n_hard_negatives = self.neg_pos_ratio * n_positives
         obj_loss_neg = obj_loss.clone()
@@ -226,7 +225,15 @@ class HardNegativeMultiBoxesLoss(nn.Module):
         
         # sort loss on each image
         obj_loss_neg, _ = obj_loss_neg.sort(dim=1, descending=True)
-        obj_loss_hardneg = obj_loss_neg[:, :n_hard_negatives].mean()
+        
+        hardness_ranks = torch.LongTensor(
+            range(n_priors), device=self.device).unsqueeze(0).expand_as(
+            obj_loss_neg)
+        
+        hard_negatives = hardness_ranks < n_hard_negatives.unsqueeze(1)
+        
+        
+        obj_loss_hardneg = obj_loss_neg[hard_negatives].mean()
         
         obj_loss = obj_loss_pos + obj_loss_hardneg
         

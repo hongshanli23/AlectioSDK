@@ -92,8 +92,8 @@ def test_hardnegative_multiboxesloss():
     boxes = [F.softmax(torch.rand(5, 4), dim=1)]
     labels = [torch.LongTensor(range(5))]
     
-    loss_fn(predicted_priors, predicted_class_dist,
-            predicted_objectness, 
+    loss_fn(predicted_priors, predicted_objectness,
+            predicted_class_dist, 
             boxes, labels)
     
     
@@ -124,9 +124,10 @@ def test_mAP():
     
     threshold=0.5
     
-    ap_dict, map = mAP(det_boxes, det_labels, det_scores, true_boxes, true_labels,
-                true_difficulties, n_classes, 'cpu', 
-                 threshold)
+    ap_dict, map = mAP(det_boxes, det_labels, det_scores, true_boxes, 
+                       true_labels,
+                true_difficulties, n_classes, device='cpu', 
+                 threshold=threshold)
     
     for c, v in ap_dict.items():
         assert v == 1.0
