@@ -85,7 +85,7 @@ The format of the values depends on the type of ML problem. Please refer to the 
 
 ## Apply inference
 The logic for applying the model to infer on the unlabeled data should be implemented in this process. 
-The function representing this process looks like
+The function representing this process looks like:
 ```python
 def infer(payload):
     # get the indices of unlabeled data
@@ -100,16 +100,20 @@ def infer(payload):
     # outputs <- save the output from the model on the unlabeled data as a dictionary
     return {'outputs': outputs}
 ```
+
 The infer function takes an argument `payload`, which is a dictionary with 2 keys:
 | key | value |
 | --- | ----  | 
 | ckpt_file | a string that specifies which checkpoint to use to infer on the unlabeled data | 
-| unlabeled | a list of unlabeled data |
+| unlabeled | a list of of indices of unlabeled data in the training set |
+
 
 The `infer` function needs to return a dictionary with one key
 | key | value |
 | --- | ----- | 
 | outputs | dictionary of index of unlabeled data and the model's output on it |
+
+
 To take the most out of Alectio's platform, we suggest you return the 'rawest' output. For example, 
 if it is a classification problem, return the output before applying softmax. 
 For more details about the format of the output, please refer to the official [examples](./examples)

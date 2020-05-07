@@ -168,36 +168,13 @@ class YOLOLayer(nn.Module):
         if (self.nx, self.ny) != (nx, ny):
             self.create_grids(img_size, (nx, ny), p.device, p.dtype)
 
-        # p.view(bs, 255, 13, 13) -- > (bs, 3, 13, 13, 85)  # (bs, anchors, grid, grid, classes + xywh)
+        # p.view(bs, 255, 13, 13) -- > (bs, 3, 13, 13, 85)  
+        # (bs, anchors, grid, grid, classes + xywh)
         p = p.view(bs, self.na, self.no, 
-                   self.ny, self.nx).permute(0, 1, 3, 4, 2).contiguous()  # prediction
-
-        if self.training:
-            return p
-
-
-        else:  # inference
-            # s = 1.5  # scale_xy  (pxy = pxy * s - (s - 1) / 2)
-            io = p.clone()  # inference output
-            io[..., :2] = torch.sigmoid(io[..., :2]) + self.grid_xy  # xy
-            io[..., 2:4] = torch.exp(io[..., 2:4]) * self.anchor_wh  # wh yolo method
-            
-            io[..., :4] *= self.stride
-
-            if 'default' in self.arc:  # seperate obj and cls
-                torch.sigmoid_(io[..., 4:])
-            elif 'BCE' in self.arc:  # unified BCE (80 classes)
-                torch.sigmoid_(io[..., 5:])
-                io[..., 4] = 1
-            elif 'CE' in self.arc:  # unified CE (1 background + 80 classes)
-                io[..., 4:] = F.softmax(io[..., 4:], dim=4)
-                io[..., 4] = 1
-
-            if self.nc == 1:
-                io[..., 5] = 1  # single-class model https://github.com/ultralytics/yolov3/issues/235
-
-            # reshape from [1, 3, 13, 13, 85] to [1, 507, 85]
-            return io.view(bs, -1, self.no), p
+            self.ny, self.nx).permute(0, 1, 3, 4, 2).contiguous()  # prediction
+        
+        return p
+    
 
 
 class Darknet(nn.Module):
@@ -243,20 +220,17 @@ class Darknet(nn.Module):
             elif mtype == 'yolo':
                 output.append(module(x, img_size))
             layer_outputs.append(x if i in self.routs else [])
-    
-        if self.training:
-            return output
-        else:
-            io, p = list(zip(*output))  # inference output, training output
-            return torch.cat(io, 1), p
         
+        return output
+    
+
     
 
         
 if __name__ == '__main__':
     darknet = Darknet('yolov3.cfg')
     
-    darknet.traion()
+    darknet.train()
     
     x = torch.rand(10, 3, 416, 416)
     y = darknet(x)

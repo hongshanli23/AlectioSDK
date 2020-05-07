@@ -22,7 +22,7 @@ class HardNegativeMultiBoxesLoss(nn.Module):
             prior anchor boxes on each image. Underlying data is a
             a tensor of shape (P, 4), where P denotes the total number
             of prior anchor boxes on each image. 
-            The bounding boxes should follow xyxy convention
+            The bounding boxes should follow cxcy convention
     
     Keyword Args:
     -------------
@@ -154,7 +154,8 @@ class HardNegativeMultiBoxesLoss(nn.Module):
             # object_for_each_prior = [o0, o1, o2,...o_{n_priors-1}]
             # oi is the local object (index of the box in bbox) with max iou with prior i
             # such that if an object z has the highest iou with prior j
-            # then oj = z (note that a priori the prior oj might be hightest iou with objects other than z)
+            # then oj = z (note that a priori the prior oj might be hightest iou with objects
+            # other than z)
             
             
             # to make sure those prior selected above qualifies as positive priors
@@ -234,7 +235,6 @@ class HardNegativeMultiBoxesLoss(nn.Module):
         
         
         obj_loss_hardneg = obj_loss_neg[hard_negatives].mean()
-        
         obj_loss = obj_loss_pos + obj_loss_hardneg
         
         return class_loss_pos + obj_loss + self.alpha * loc_loss

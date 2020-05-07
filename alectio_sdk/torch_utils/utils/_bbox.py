@@ -64,6 +64,22 @@ def cxcy_to_xy(cxcy):
     return torch.cat([cxcy[:, :2] - (cxcy[:, 2:] / 2),  # x_min, y_min
                       cxcy[:, :2] + (cxcy[:, 2:] / 2)], 1)  # x_max, y_max
 
+def batched_cxcy_to_xy(cxcy):
+    '''Batched version of cxcy_to_xy
+    
+    Parameters:
+    -----------
+        cxcy: a tensor of shape (N, n_priors, 4)
+            batched bboxes in cxcy format
+    
+    Return:
+    -------
+        batched bboxes in xyxy format
+    '''
+    return torch.cat([cxcy[:,:,:2] - (cxcy[:,:,2:]/2), 
+                      cxcy[:,:,:2] + (cxcy[:,:,2:]/2)], dim=2)
+
+
 # implementation from https://github.com/sgrvinod/a-PyTorch-Tutorial-to-Object-Detection/blob/master/utils.py
 def xy_to_cxcy(xy):
     """
@@ -72,11 +88,13 @@ def xy_to_cxcy(xy):
     
     Paramters:
     ----------
-       xy: bounding boxes in boundary coordinates (xyxy convention), a tensor of size (n_boxes, 4)
+       xy: bounding boxes in boundary coordinates (xyxy convention),
+       a tensor of size (n_boxes, 4)
     
     Return:
     -------
-         bounding boxes in center-size coordinates (cxcy convention), a tensor of size (n_boxes, 4)
+         bounding boxes in center-size coordinates (cxcy convention), 
+         a tensor of size (n_boxes, 4)
     """
     return torch.cat([(xy[:, 2:] + xy[:, :2]) / 2,  # c_x, c_y
                       xy[:, 2:] - xy[:, :2]], 1)  # w, h
@@ -96,7 +114,38 @@ def gcxgcy_to_cxcy(gcxgcy, priors_cxcy):
     return torch.cat([gcxgcy[:, :2] * priors_cxcy[:, 2:] / 10 + priors_cxcy[:, :2],  # c_x, c_y
                       torch.exp(gcxgcy[:, 2:] / 5) * priors_cxcy[:, 2:]], 1)  # w, h
 
+def batched_gcxgcy_to_cxcy(gcxgcy, priors_cxcy):
+    '''Batched version of gcxgcy_to_cxcy
+    
+    Parameters:
+    -----------
+        gcxgcy: a tensor of shape (N, n_priors, 4)
+            predicted boxes in batch in log space relative to 
+            the anchor priors 
+            
+            N: the batch size
+            n_priors: number of anchor priors on each image
+            format of box is [gcx, gcy, pw, ph]
+            
+            gcx * w/10 + pcx = cx
+            gcy * h/10 + pcy = cy
+            pw * e^{gw/5} = w
+            ph * e^{gh/5} = h
+            
+        
+        priors_cxcy: a tensor of shape (N, n_priors, 4)
+            pregenerated anchor priors in batch
+            N: the batch size
+            n_priors: number of priors
+            each prior shoud follow cxcy format
 
+    '''
+    
+    return torch.cat([
+        gcxgcy[:,:,:2]*priors_cxcy[:,:,2:]/10 + priors_cxcy[:,:,:2],
+        gcxgcy[:,:,2:]*torch.exp(priors_cxcy[:,:,2:]/5)], dim=2)
+
+    
 
 def cxcy_to_gcxgcy(cxcy, priors_cxcy):
     """

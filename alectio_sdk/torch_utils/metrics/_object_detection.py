@@ -39,6 +39,7 @@ def mAP(det_boxes, det_labels, det_scores, true_boxes,
             
         true_difficulties: list of tensors 
             one tensor for each image containing actual objects' difficulty (0 or 1)
+            0: easy, 1: difficult
             Each tensor is of shape N_i, where N_i the the number of object on 
             the corresponding image
             
@@ -93,9 +94,9 @@ def mAP(det_boxes, det_labels, det_scores, true_boxes,
 
     assert det_images.size(0) == det_boxes.size(0) == det_labels.size(0) == det_scores.size(0)
 
-    # Calculate APs for each class (except background)
-    average_precisions = torch.zeros((n_classes - 1), dtype=torch.float)  # (n_classes - 1)
-    for c in range(1, n_classes):
+    # Calculate APs for each class 
+    average_precisions = torch.zeros((n_classes), dtype=torch.float)  # (n_classes)
+    for c in range(n_classes):
         # Extract only objects with this class
         true_class_images = true_images[true_labels == c]  # (n_class_objects)
         true_class_boxes = true_boxes[true_labels == c]  # (n_class_objects, 4)
