@@ -10,6 +10,14 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
+## Install AlectioSDK
+```
+source examples-venv/bin/activate
+cd ../
+pip install .
+```
+
+
 ## List of examples
 
 [topic classification](./topic_classification)

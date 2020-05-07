@@ -138,18 +138,8 @@ scores:
 
 pre_softmax:
 > *(list of list)* A list of class distribution for each 
-    detected bounding boxes. As the name suggest, use 
-    the output beof each detected 
-    bounding box. 
+    detected bounding boxes. As the name suggests, do not
+    apply softmax
 
 
-'lbs' os a dictionary whose keys are the indices of the test images. 
-The value `lbs[i]` is a dictionary that records the ground-truth bounding 
-boxes and class labels on the image `i`
 
-**Keys of `lbs[i]`**
-
-boxes
-> *(list of list)* A list of ground-truth bounding boxes on image `i`.
-    Each bounding box should normalized acoording to the dimension
-    of test image `i` and it should be in xyxy-format
