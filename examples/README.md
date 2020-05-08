@@ -6,6 +6,8 @@ More examples will be added as we further develop the sdk
 ## Create an environment and install python dependencies
 ```
 python -m venv examples-venv
+source examples-venv/bin/activate
+cd AlectioSDK
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
@@ -20,5 +22,5 @@ pip install .
 
 ## List of examples
 
-[topic classification](./topic_classification)
+[Topic classification](./topic_classification)
 
