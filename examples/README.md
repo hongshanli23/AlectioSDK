@@ -1,7 +1,7 @@
 # Examples for using AlectioSDK
 
 Examples are organized based on the type of ML problem. 
-More examples will be added as we further develop the sdk
+More examples will be added as we further develop the SDK.
 
 ## Create an environment and install python dependencies
 ```
@@ -23,4 +23,6 @@ pip install .
 ## List of examples
 
 [Topic classification](./topic_classification)
+
+[Object classification](./object_classification)
 
