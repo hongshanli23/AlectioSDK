@@ -112,12 +112,7 @@ def bbox_transform(batched_prediction):
     
 
 
-def train(payload):
-    
-    labeled = payload['labeled']
-    resume_from = payload['resume_from']
-    ckpt_file = payload['ckpt_file']
-    
+def train(labeled, resume_from, ckpt_file):
     # hyperparameters
     batch_size = 16
     epochs = 2 # just for demo
@@ -197,11 +192,9 @@ def train(payload):
 
 
 
-def test(payload):
-    ckpt_file = payload['ckpt_file']
+def test(ckpt_file):    
     
     batch_size=16
-     
     coco = COCO(env.DATA_DIR, Transforms(), train=False)
     loader = DataLoader(coco, shuffle=False, batch_size=batch_size,
                        collate_fn=collate_fn)
@@ -239,7 +232,6 @@ def test(payload):
             predictions.append(batched_prediction)
             
     predictions = torch.cat(predictions, dim=0)
-    
     
     # apply nms to predicted bounding boxes
     predicted_boxes, predicted_objectness, predicted_class_dist = bbox_transform(
@@ -301,10 +293,7 @@ def test(payload):
     return {"predictions": prd, "labels": lbs}
         
         
-def infer(payload):
-    unlabeled = payload['unlabeled']
-    ckpt_file = payload['ckpt_file']
-    
+def infer(unlabeled, ckpt_file):    
     batch_size=16
      
     coco = COCO(env.DATA_DIR, Transforms(), samples=unlabeled, train=True)
@@ -364,26 +353,23 @@ def infer(payload):
     
  
     # class distribution is part of the return
-    # do notapply softmax to the predicted class distribution 
+    # do not apply softmax to the predicted class distribution 
     # as we will do it internally for efficiency
     outputs = {}
     for i in range(len(coco)):
         # get boxes, scores, and objects on each image
         _xyxy, _scores = xyxy[i], predicted_objectness[i]
         _pre_softmax = predicted_class_dist[i]
-        
         keep = tv.ops.nms(_xyxy, _scores, 0.5)
-        
         boxes, scores, pre_softmax = _xyxy[keep], _scores[keep], _pre_softmax[keep]
-        
         outputs[i] = {
+            
             "boxes" : boxes.cpu().numpy().tolist(),
             "pre_softmax" : pre_softmax.cpu().numpy().tolist(),
             "scores"  : scores.cpu().numpy().tolist()
             
         }
         
-   
     return {"outputs" : outputs}
         
     
@@ -391,22 +377,12 @@ def infer(payload):
 if __name__ == '__main__':
     # debug
     # train
-    payload = {
-        'labeled': range(10),
-        'resume_from': None,
-        'ckpt_file': 'ckpt_0'
-    }
-    train(payload)
+
+    labeled = range(10),
+    resume_from = None,
+    ckpt_file = 'ckpt_0'
+    logdir = 'test'
     
-    # test
-    payload = {
-        'ckpt_file': 'ckpt_0'
-    }
-    test(payload)
+    train(labeled=labeled, resume_from=resume_from, 
+          ckpt_file=ckpt_file, logdir=logdir)
     
-    # infer
-    payload = {
-        'unlabeled': range(10, 20),
-        'ckpt_file': 'ckpt_0'
-    }
-    infer(payload)

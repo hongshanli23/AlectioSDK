@@ -42,6 +42,27 @@ arguments of this process.
 
 The function is well-annotated, please go through the code for more detail. 
 
+The return of `train` function is a dictionary
+```
+{"labels": lbs}
+```
+
+'lbs' os a dictionary whose keys are the indices of the labeled images. 
+The value `lbs[i]` is a dictionary that records the ground-truth bounding 
+boxes and class labels on the image `i`
+**Keys of `lbs[i]`**
+
+boxes
+> *(list of list)* A list of ground-truth bounding boxes on image `i`.
+    Each bounding box should normalized acoording to the dimension
+    of test image `i` and it should be in xyxy-format
+ 
+objects:
+> *(list of int)* A list of class label of each ground-truth bounding box
+
+We will use the labels on `labeled` data to provide insights on 
+preferential learning
+
 ### 4. Build test process
 The test process tests the model trained in each active learning loop.
 In this example, the test process is the `test` function defined 
@@ -96,13 +117,7 @@ boxes
 objects:
 > *(list of int)* A list of class label of each ground-truth bounding box
 
-difficulties 
-> *(optional) (list of int{0, 1})* A list of difficulties of each ground-truth object. 
-   An object is 'difficult' if it is difficult for human to detect. 
-   For example, an object can be difficult if it is excessively small. 
-   Use 1 for difficult object and 0 for non-diffcult object.
-   Difficult object will not be account when calculating MAP.
-   If you skip this field, then all objects are assumed to be non-difficult
+
   
 
 ### 5. Build infer process
