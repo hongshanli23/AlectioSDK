@@ -7,7 +7,6 @@ import traceback
 import sys
 
 
-
 class Pipeline(object):
     def __init__(self, name, train_fn, test_fn, infer_fn):
         self.app = Flask(name)
@@ -16,60 +15,50 @@ class Pipeline(object):
         self.test_fn = test_fn
         self.infer_fn = infer_fn
 
-        # train 
-        self.app.add_url_rule(
-            '/train', 'train', self._train, methods=['POST']
-            )
-        
+        # train
+        self.app.add_url_rule("/train", "train", self._train, methods=["POST"])
+
         # test
-        self.app.add_url_rule(
-            '/test', 'test', self._test, methods=['POST']
-            )
+        self.app.add_url_rule("/test", "test", self._test, methods=["POST"])
 
         # infer
-        self.app.add_url_rule(
-            '/infer', 'infer', self._infer, methods=['POST']
-            )
-
+        self.app.add_url_rule("/infer", "infer", self._infer, methods=["POST"])
 
     def _train(self):
         # labeled = map(int, request.get_json()['labeled'])
         payload = request.get_json()
         try:
             self.train_fn(payload)
-            return jsonify({'status': 200})
+            return jsonify({"status": 200})
 
         except Exception as e:
             traceback.print_exceptions(sys.exc_info())
-            return jsonify({'status': 500})
-    
+            return jsonify({"status": 500})
+
     def _test(self):
         payload = request.get_json()
         try:
             res = self.test_fn(payload)
-            res['status'] = 200
-            
+            res["status"] = 200
+
             return jsonify(res)
         except Exception as e:
             traceback.print_exceptions(sys.exc_info())
-            return jsonify({'status': 500})
-            
-    
+            return jsonify({"status": 500})
+
     def _infer(self):
         payload = request.get_json()
         try:
             res = self.infer_fn(payload)
-            res['status'] = 200
-            
+            res["status"] = 200
+
             return jsonify(res)
         except Exception as e:
             traceback.print_exceptions(sys.exc_info())
-            return jsonify({
-                'status': 500
-                })
+            return jsonify({"status": 500})
 
-    def __call__(self, debug=False, host='0.0.0.0', port=5000):
-        '''Run the app
+    def __call__(self, debug=False, host="0.0.0.0", port=5000):
+        """Run the app
 
         Paramters:
         ----------
@@ -81,11 +70,5 @@ class Pipeline(object):
             By default the app available to external world
 
         port: the port of the webserver. Default: 5000
-        '''
-        self.app.run(debug=debug, host=host, port=5000)
-
-
-
-
-
-
+        """
+        self.app.run(debug=debug, host=host, port=port)

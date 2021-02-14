@@ -2,7 +2,7 @@
 
 AlectioSDK is a package that enables developers to build an ML pipeline as a Flask app to interact with Alectio's
 platform. 
-It is designed for Alectio's clients, who prefer to keep their model and data on their on server. 
+It is designed for Alectio's clients, who prefer to keep their model and data on their own server. 
 
 The package is currently under active development. More functionalities that aim to enhance robustness will be added soon, but for now the package provides a class `alectio_sdk.flask_wrapper.Pipeline` that inferfaces with customer-side
 processes in a consistent manner. Customers need to implement 3 processes as python functions:
@@ -121,10 +121,10 @@ For more details about the format of the output, please refer to the official [e
 ```
 git clone https://github.com/hsl89/AlectioSDK.git
 cd AlectioSDK
-pip install -r requirements.txt
+<!-- pip install -r requirements.txt --> 
 python setup.py install
 ```
 
 ## Examples 
-To help customers using this package, we provide detailed [examples](./examples) that covers a wide range of 
-ML problems 
+To help customers using this package, we provide detailed [examples](./examples) that cover a wide range of 
+ML problems.
